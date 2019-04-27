@@ -10,7 +10,7 @@ from homeassistant.const import ATTR_CREDENTIALS, CONF_NAME, CONF_PROFILE_NAME
 from homeassistant.helpers import config_validation as cv, discovery
 
 from homeassistant.components.image_processing import (
-    PLATFORM_SCHEMA, CONF_SOURCE, CONF_ENTITY_ID, CONF_NAME)
+    CONF_SOURCE, SOURCE_SCHEMA)
 
 # Loading the config flow file will register the flow
 from . import config_flow  # noqa
@@ -29,7 +29,6 @@ from .const import (
     DATA_CONFIG,
     DATA_HASS_CONFIG,
     DATA_SESSIONS,
-    DEFAULT_TARGET,
     DOMAIN,
 )
 
@@ -51,11 +50,7 @@ DEFAULT_CREDENTIAL = [{
     CONF_VALIDATE: False,
 }]
 
-<<<<<<< HEAD
-SUPPORTED_SERVICES = ["lambda", "sns", "sqs", "image_processing"]
-=======
-SUPPORTED_SERVICES = ["lambda", "sns", "sqs", "rekognition"]
->>>>>>> Initial
+SUPPORTED_SERVICES = ["lambda", "sns", "sqs"]
 
 NOTIFY_PLATFORM_SCHEMA = vol.Schema(
     {
@@ -72,22 +67,16 @@ NOTIFY_PLATFORM_SCHEMA = vol.Schema(
     }
 )
 
-<<<<<<< HEAD
-IMAGE_PROCESSING_PLATFORM_SCHEMA = vol.Schema(
+IMAGE_PROCESSING_SCHEMA = vol.Schema(
     {
-    vol.Required(CONF_REGION): vol.All(cv.string, vol.Lower),
-    vol.Inclusive(CONF_ACCESS_KEY_ID, ATTR_CREDENTIALS): cv.string,
-    vol.Inclusive(CONF_SECRET_ACCESS_KEY, ATTR_CREDENTIALS): cv.string,
-    vol.Required(CONF_SOURCE): vol.All(cv.ensure_list, [SOURCE_SCHEMA]),
-=======
-IMAGE_PROCESSING_PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend({
-    vol.Required(CONF_REGION): vol.All(cv.string, vol.Lower),
-    vol.Inclusive(CONF_ACCESS_KEY_ID, ATTR_CREDENTIALS): cv.string,
-    vol.Inclusive(CONF_SECRET_ACCESS_KEY, ATTR_CREDENTIALS): cv.string,
->>>>>>> Initial
-    vol.Optional(CONF_TARGET, default=DEFAULT_TARGET): cv.string,
-})
-
+        vol.Optional(CONF_TARGET): cv.string,
+        vol.Optional(CONF_NAME): cv.string,
+        vol.Required(CONF_SOURCE): vol.All(cv.ensure_list, [SOURCE_SCHEMA]),
+        vol.Required(CONF_REGION): vol.All(cv.string, vol.Lower),
+        vol.Inclusive(CONF_ACCESS_KEY_ID, ATTR_CREDENTIALS): cv.string,
+        vol.Inclusive(CONF_SECRET_ACCESS_KEY, ATTR_CREDENTIALS): cv.string,
+    }
+)
 
 CONFIG_SCHEMA = vol.Schema(
     {
@@ -99,12 +88,7 @@ CONFIG_SCHEMA = vol.Schema(
                 vol.Optional(CONF_NOTIFY, default=[]): vol.All(
                     cv.ensure_list, [NOTIFY_PLATFORM_SCHEMA]),
                 vol.Optional(CONF_IMAGE_PROCESSING, default=[]): vol.All(
-<<<<<<< HEAD
-                    cv.ensure_list, [IMAGE_PROCESSING_PLATFORM_SCHEMA]),
-=======
-                    cv.ensure_list, [NOTIFY_PLATFORM_SCHEMA]
-                ),
->>>>>>> Initial
+                    cv.ensure_list, [IMAGE_PROCESSING_SCHEMA])
             }
         )
     },
@@ -184,6 +168,10 @@ async def async_setup_entry(hass, entry):
                 hass, "notify", DOMAIN, notify_config, config
             )
         )
+
+    for image_processing_config in conf[CONF_IMAGE_PROCESSING]:
+        _LOGGER.error("SETTING UP REKOGNITION with source: %s", image_processing_config[CONF_SOURCE])
+
 
     return validation
 
