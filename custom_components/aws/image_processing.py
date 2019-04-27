@@ -11,14 +11,13 @@ from homeassistant.core import split_entity_id
 from homeassistant.helpers.json import JSONEncoder
 
 from homeassistant.components.image_processing import (
-    PLATFORM_SCHEMA, ImageProcessingEntity, CONF_SOURCE, CONF_ENTITY_ID,
-    CONF_NAME)
+    ImageProcessingEntity,
+    CONF_SOURCE, CONF_ENTITY_ID, CONF_NAME)
 
 from .const import (
     CONF_ACCESS_KEY_ID,
     CONF_SECRET_ACCESS_KEY,
     CONF_REGION,
-    CONF_SERVICE,
     CONF_TARGET,
 )
 from .notify import get_available_regions
@@ -43,27 +42,40 @@ def parse_labels(response):
 def setup_platform(hass, config, add_devices, discovery_info=None):
     """Set up Rekognition."""
 
+    if discovery_info is None:
+        _LOGGER.error('Please config aws notify platform in aws component')
+        return None
+
+    import aiobotocore
+
+    session = None
+
+    conf = discovery_info
     _LOGGER.error(
-            "SETTING UP REKOGNITION",
+            "SETTING UP REKOGNITION with discovery_info: %s", conf
         )
 
-    aws_config = config.copy()
+    target = conf[CONF_TARGET]
+    region = conf[CONF_REGION]
+    source = conf[CONF_SOURCE]
+
+ 
 
     import boto3
     aws_config = {
-        CONF_REGION: aws_config[CONF_REGION],
-        CONF_ACCESS_KEY_ID: aws_config[CONF_ACCESS_KEY_ID],
-        CONF_SECRET_ACCESS_KEY: aws_config[CONF_SECRET_ACCESS_KEY],
+        CONF_REGION: region,
+        CONF_ACCESS_KEY_ID: 'foo',
+        CONF_SECRET_ACCESS_KEY: 'br',
         }
 
     client = boto3.client('rekognition', **aws_config) # Will not raise error.
 
     entities = []
-    for camera in config[CONF_SOURCE]:
+    for camera in source:
         entities.append(Rekognition(
             client,
-            config.get(CONF_REGION),
-            config.get(CONF_TARGET),
+            region,
+            target,
             camera[CONF_ENTITY_ID],
             camera.get(CONF_NAME),
         ))
